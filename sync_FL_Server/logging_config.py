@@ -24,6 +24,9 @@ class VerboseLogger:
     console_handler.setLevel(verbosity_level)
 
     # Detailed formatter with timestamps, file, function, and line number
+    '''
+    All the information below comes from LogRecorder. https://docs.python.org/3/library/logging.html#logrecord-attributes
+    '''
     formatter = logging.Formatter(
       '%(asctime)s - [%(levelname)-8s] - %(name)s:%(funcName)s():%(lineno)d - %(message)s', datefmt = '%Y-%m-%d %H:%M:%S'
     )
@@ -94,7 +97,8 @@ def step(self, step_num, description):
     
 def wait(self, wait_reason, timeout_sec = None):
   '''
-  Logs wait for events
+  Logs wait for events, something like:
+  logger.wait("Waiting for database connection", timeout_sec = 30)
   '''
   message = f"WAIT: {wait_reason}"
   if timeout_sec:
@@ -108,6 +112,14 @@ def checkpoint(self, checkpoint_name, status = "OK"):
   self.logger.info(f"CHECKPOINT: {checkpoint_name} - Status: {status}")
 
 # Global logger instance
+'''
+It is accessible from anywhere in the program. If I have multiple files, such as server.py, client.py, functions.py, etc., all of them have to use the same logging object.
+in main.py: initialize_logger("name")
+in rest of the files: 
+from logger_config import get_logger
+logger = get_logger()
+logger.info("....")
+'''
 logger = None
 
 def initialize_logger(name = "FIDEL", log_file = "logs/fidel_debug.log", verbosity_level = logging.DEBUG):
