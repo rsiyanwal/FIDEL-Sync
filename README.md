@@ -109,7 +109,7 @@ flowchart TD
   1. Decode incoming model (`base64.b64decode`).
   2. Persist to `data/current_model.h5` and load via `load_model`.
   3. Prepare local training data from `data/data.csv` (batch mode default).
-  4. Evaluate global model and append metrics to `data/metrics.txt`.
+  4. Evaluate the global model and append metrics to `data/metrics.txt`.
   5. Train local model (`fit`, batch_size=32, epochs=16).
   6. Evaluate trained model and append metrics to `data/localMetrics.txt`.
   7. Save trained model to `data/model.h5`.
@@ -136,4 +136,49 @@ flowchart LR
     TR --> NM[(data/model.h5)]
     NM -->|base64 encode| MSG2[Updated model payload]
     MSG2 -->|return over gRPC| AGG["Server-side aggregation logic (intended FedAvg)"]
+```
+
+
+`server.py` -> `createData()`
+```mermaid
+flowchart TD
+
+    A["Start createData"] --> B["Load MAT file"]
+    B --> C["x_train = Data_train_2"]
+    C --> D["y_train = label_train_2"]
+    D --> E["indices = permut"]
+
+    E --> F["indices = indices - 1"]
+    F --> G["indices = indices[0]"]
+
+    G --> H["slot = len(indices) // n"]
+    H --> I["i = 0"]
+    I --> J["Create data folder if missing"]
+
+    J --> K{"i < len(indices)"}
+
+    K -->|Yes| L{"i // slot + 1 <= n"}
+
+    L -->|Yes| M["folderId = i // slot + 1"]
+    L -->|No| N["folderId = n"]
+
+    M --> O["data = empty list"]
+    N --> O
+
+    O --> P["Repeat slot times"]
+    P --> Q["x = x_train[indices[i]]"]
+    Q --> R["y = y_train[indices[i]]"]
+    R --> S["row = append x and y"]
+    S --> T["add row to data"]
+    T --> U["i = i + 1"]
+    U --> V{"i == len(indices)"}
+
+    V -->|No| P
+    V -->|Yes| W["Create node folder if missing"]
+    W --> X["Convert data to DataFrame"]
+    X --> Y["Save data.csv"]
+
+    Y --> K
+
+    K -->|No| Z["Print Dataset created for n devices"]
 ```
